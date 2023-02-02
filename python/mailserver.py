@@ -98,15 +98,18 @@ class CustomSMTPServer(smtpd.SMTPServer):
         except:
             logger.exception('Error reading incoming email')
         else:
+            def scrub_str(x):
+                return re.sub(r'[^\x00-\x7f]', "", x)
+
             # this data will be sent as POST data
             edata = {
-                'subject': subject,
-                'body': body,
-                'htmlbody': htmlbody,
+                'subject': scrub_str(subject),
+                'body': scrub_str(body),
+                'htmlbody': scrub_str(htmlbody),
                 'from': mailfrom,
                 'attachments':[]
             }
-            savedata = {'sender_ip':peer[0],'from':mailfrom,'rcpts':rcpttos,'raw':data,'parsed':edata}
+            savedata = {'sender_ip':peer[0],'from':mailfrom,'rcpts':rcpttos,'raw':scrub_str(data),'parsed':edata}
 
             filenamebase = str(int(round(time.time() * 1000)))
 
